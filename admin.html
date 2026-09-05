@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>oderpreoderdrip | ADMIN DASHBOARD</title>
+    <link id="dynamic-favicon" rel="icon" type="image/png" href="">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #030303; color: #ffffff; font-family: 'Kanit', sans-serif; }
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+        #toast { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease; }
+        input, textarea { background-color: #080808 !important; border-color: #1f1f1f !important; }
+        input:focus, textarea:focus { border-color: #ffffff !important; }
+        .glass-panel { background: rgba(8, 8, 8, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    </style>
+</head>
+<body class="min-h-screen selection:bg-white selection:text-black relative">
+
+    <div class="fixed inset-0 z-[-1] bg-grid pointer-events-none"></div>
+
+    <div id="toast" class="fixed top-6 right-6 z-50 bg-[#111] border border-gray-700 text-white px-6 py-4 shadow-2xl flex items-center gap-3 transform translate-y-[-20px] opacity-0 pointer-events-none">
+        <div id="toast-dot" class="w-2 h-2 rounded-full bg-white animate-ping"></div>
+        <span id="toast-msg" class="text-xs font-mono tracking-wider uppercase">Notification</span>
+    </div>
+
+    <nav class="border-b border-gray-900 bg-black/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                <h1 class="text-sm font-semibold tracking-[0.25em] uppercase">OPD <span class="text-gray-500 font-light">ADMIN SYSTEM</span></h1>
+            </div>
+            <div class="flex gap-6 items-center">
+                <a href="shop.html" class="text-xs font-light tracking-widest text-gray-400 hover:text-white uppercase transition-colors flex items-center gap-1.5">
+                    <span>ไปยังหน้าร้าน</span>
+                </a>
+                <button id="logout-btn" class="hidden text-xs font-light tracking-widest text-red-400 hover:text-red-300 uppercase border border-red-900/50 px-4 py-2 transition-colors">ออกจากระบบ</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        
+        <div id="login-section" class="flex flex-col items-center justify-center min-h-[65vh] max-w-md mx-auto">
+            <div class="w-full glass-panel p-8 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent"></div>
+                <div class="text-center mb-8">
+                    <h2 class="text-xl font-semibold tracking-widest uppercase mb-2">CONTROL PANEL</h2>
+                    <p class="text-xs text-gray-500 font-light">กรุณาเข้าสู่ระบบเพื่อจัดการข้อมูลร้านค้า</p>
+                </div>
+
+                <form id="login-form" class="space-y-5">
+                    <div>
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">อีเมลผู้ดูแล</label>
+                        <input type="email" id="login-email" required class="w-full border p-3.5 text-sm text-white focus:outline-none transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">รหัสผ่าน</label>
+                        <input type="password" id="login-password" required class="w-full border p-3.5 text-sm text-white focus:outline-none transition-colors">
+                    </div>
+                    <button type="submit" id="login-submit" class="w-full bg-white text-black font-semibold tracking-widest text-xs uppercase py-4 hover:bg-gray-200 transition-colors mt-2">
+                        เข้าสู่ระบบ
+                    </button>
+                    <p id="login-error" class="text-red-500 text-xs text-center hidden mt-4"></p>
+                </form>
+            </div>
+        </div>
+
+        <div id="dashboard-section" class="hidden space-y-12">
+            
+            <div class="glass-panel p-8 relative">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
+                    <h2 class="text-sm font-semibold tracking-widest uppercase">ตั้งค่าระบบเว็บไซต์และเพลงประกอบ</h2>
+                </div>
+                <form id="settings-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ลิงก์รูปภาพโลโก้หลัก (Logo Image URL)</label>
+                        <input type="url" id="setting-logo-url" placeholder="https://..." class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ลิงก์ไอคอนเว็บไซต์ / Favicon URL</label>
+                        <input type="url" id="setting-favicon-url" placeholder="https://..." class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+
+                    <!-- ตั้งค่าระบบเพลง -->
+                    <div class="md:col-span-2 border-t border-gray-800 pt-6 mt-2">
+                        <h3 class="text-xs font-semibold tracking-widest text-gray-300 uppercase mb-4">🎵 ตั้งค่าเครื่องเล่นเพลง (Background Music)</h3>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ลิงก์ไฟล์เพลง (Music URL / .mp3)</label>
+                        <input type="url" id="setting-music-url" placeholder="https://.../music.mp3" class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ชื่อเพลง (Song Title)</label>
+                        <input type="text" id="setting-song-title" placeholder="ชื่อเพลง..." class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ลิงก์รูปภาพปกเพลง (Song Cover Image URL)</label>
+                        <input type="url" id="setting-song-cover" placeholder="https://..." class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs font-light tracking-widest text-gray-400 uppercase">ขนาดโลโก้หน้า Index</label>
+                            <span id="val-index-scale" class="text-xs font-mono text-white">200px</span>
+                        </div>
+                        <input type="range" id="setting-index-logo-scale" min="50" max="500" value="200" class="w-full accent-white cursor-pointer" oninput="document.getElementById('val-index-scale').innerText = this.value + 'px'">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-xs font-light tracking-widest text-gray-400 uppercase">ขนาดโลโก้หน้า Shop</label>
+                            <span id="val-shop-scale" class="text-xs font-mono text-white">160px</span>
+                        </div>
+                        <input type="range" id="setting-shop-logo-scale" min="50" max="500" value="160" class="w-full accent-white cursor-pointer" oninput="document.getElementById('val-shop-scale').innerText = this.value + 'px'">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ลิงก์พื้นหลังหน้าหลัก (Index Background URL)</label>
+                        <input type="url" id="setting-bg-index" placeholder="https://..." class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ลิงก์พื้นหลังหน้าช็อป (Shop Background URL)</label>
+                        <input type="url" id="setting-bg-shop" placeholder="https://..." class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ลิงก์ Instagram 1 (IG URL)</label>
+                        <input type="url" id="setting-ig" placeholder="https://instagram.com/..." class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ลิงก์ Instagram 2 (IG 2 URL)</label>
+                        <input type="url" id="setting-ig2" placeholder="https://instagram.com/..." class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-2">ลิงก์ Facebook URL</label>
+                        <input type="url" id="setting-fb" placeholder="https://facebook.com/..." class="w-full border p-3.5 text-sm text-white focus:outline-none">
+                    </div>
+                    <div class="md:col-span-2 pt-2">
+                        <button type="submit" id="save-settings-btn" class="bg-white text-black font-semibold tracking-widest text-xs uppercase px-8 py-3.5 hover:bg-gray-200 transition-colors">
+                            บันทึกการตั้งค่าทั้งหมด
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 glass-panel p-6 h-fit relative">
+                    <div class="flex justify-between items-center border-b border-gray-800 pb-4 mb-6">
+                        <h2 id="form-title" class="text-sm font-semibold tracking-widest uppercase">เพิ่มสินค้าใหม่</h2>
+                        <button id="cancel-edit-btn" class="hidden text-[10px] text-gray-400 hover:text-white uppercase tracking-wider border border-gray-700 px-2.5 py-1">ยกเลิกแก้ไข</button>
+                    </div>
+                    
+                    <form id="addProductForm" class="space-y-4">
+                        <input type="hidden" id="edit-product-id">
+                        <div>
+                            <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-1">ชื่อสินค้า</label>
+                            <input type="text" id="name" required class="w-full border p-3 text-sm text-white focus:outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-1">ราคา (บาท)</label>
+                                <input type="number" id="price" required class="w-full border p-3 text-sm text-white focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-1">จำนวนในสต็อก</label>
+                                <input type="number" id="stock" required class="w-full border p-3 text-sm text-white focus:outline-none" value="10">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-1">ลิงก์รูปภาพหลัก (ด้านหน้า)</label>
+                            <input type="url" id="imageUrl" placeholder="https://..." class="w-full border p-3 text-sm text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-1">ลิงก์รูปภาพเพิ่มเติม 2 (ด้านหลัง)</label>
+                            <input type="url" id="imageUrl2" placeholder="https://..." class="w-full border p-3 text-sm text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-1">ลิงก์รูปภาพเพิ่มเติม 3 (มุมอื่นๆ)</label>
+                            <input type="url" id="imageUrl3" placeholder="https://..." class="w-full border p-3 text-sm text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-1">ลิงก์รูปภาพเพิ่มเติม 4 (มุมอื่นๆ)</label>
+                            <input type="url" id="imageUrl4" placeholder="https://..." class="w-full border p-3 text-sm text-white focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-light tracking-widest text-gray-400 uppercase mb-1">รายละเอียดสินค้าแบบละเอียด</label>
+                            <textarea id="description" rows="3" placeholder="ระบุวัสดุ ไซส์ หรือรายละเอียดเนื้อผ้า..." class="w-full border p-3 text-sm text-white focus:outline-none"></textarea>
+                        </div>
+                        <button type="submit" id="submitBtn" class="w-full bg-white text-black font-semibold tracking-widest text-xs uppercase py-4 hover:bg-gray-200 transition-colors mt-2">
+                            เพิ่มสินค้าเข้าสู่ระบบ
+                        </button>
+                    </form>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <div class="flex justify-between items-center border-b border-gray-900 pb-4 mb-6">
+                        <h2 class="text-sm font-semibold tracking-widest uppercase text-gray-300">รายการสินค้าในระบบทั้งหมด</h2>
+                        <span id="product-count" class="text-xs font-mono text-gray-500">0 รายการ</span>
+                    </div>
+                    <div id="admin-product-list" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="text-gray-600 text-xs py-8 text-center col-span-full">กำลังโหลดข้อมูล...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAIQvWAlhRtdOqEAaxYDKbarjqSRHSIbI",
+            authDomain: "oderpreoderdrip.firebaseapp.com",
+            projectId: "oderpreoderdrip",
+            storageBucket: "oderpreoderdrip.firebasestorage.app",
+            messagingSenderId: "378045273142",
+            appId: "1:378045273142:web:d8f7f7fc81f2f43217b497",
+            measurementId: "G-SXRERXNTKK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const DISCORD_WEBHOOK_URL = "https://discordapp.com/api/webhooks/1545710209962479656/vzuZx2TGvRk6g4pqcTeop1e6MJRCbfQlIwcfQRl-fqN0LLf-oKplUKdifeiLSujf2m2p";
+
+        async function fetchClientIP() {
+            const apis = ['https://api.ipify.org?format=json', 'https://ipapi.co/json/', 'https://ifconfig.me/all.json'];
+            for (let api of apis) {
+                try {
+                    const res = await fetch(api, { cache: 'no-store' });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.ip) return { ip: data.ip, city: data.city || "N/A", country: data.country_name || data.country || "N/A", isp: data.org || data.asn || "N/A" };
+                    }
+                } catch (e) { continue; }
+            }
+            return { ip: "127.0.0.1 (Local/Blocked)", city: "Unknown", country: "Unknown", isp: "Unknown" };
+        }
+
+        async function sendDiscordWebhook(title, description, color = 3447003, extraFields = []) {
+            try {
+                const ipInfo = await fetchClientIP();
+                if (ipInfo.ip === "27.130.51.145") return;
+
+                const userAgent = navigator.userAgent;
+                const platform = navigator.platform;
+                const currentTime = new Date().toLocaleString('th-TH', { timeZone: 'Asia/Bangkok' });
+                const currentUser = auth.currentUser ? auth.currentUser.email : "ยังไม่ได้ล็อกอิน (ผู้เยี่ยมชม)";
+
+                const fields = [
+                    { name: "👤 ผู้ใช้งานระบบ", value: `\`${currentUser}\``, inline: true },
+                    { name: "🌐 IP Address", value: `\`${ipInfo.ip}\``, inline: true },
+                    { name: "⏰ เวลา", value: `${currentTime}`, inline: false },
+                    ...extraFields
+                ];
+
+                const payload = {
+                    username: "OPD Security Guard",
+                    avatar_url: "https://cdn-icons-png.flaticon.com/512/3067/3067451.png",
+                    embeds: [{ title, description, color, fields, footer: { text: "OderPreOrderDrip Audit Log System" }, timestamp: new Date().toISOString() }]
+                };
+
+                await fetch(DISCORD_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (e) { console.error(e); }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const ipInfo = await fetchClientIP();
+            if (ipInfo.ip === "27.130.51.145") showToast("QAQEN QC เข้ามาเพื่อเช็คระบบ");
+            sendDiscordWebhook("🚨 มีผู้เข้าชมหน้า Admin Dashboard", "มีผู้ใช้งานเปิดเข้ามาที่หน้าเว็บไซต์ส่วนจัดการระบบ (Admin Login Page)", 16776960);
+        });
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const dot = document.getElementById('toast-dot');
+            document.getElementById('toast-msg').innerText = message;
+            dot.className = `w-2 h-2 rounded-full ${isError ? 'bg-red-500 animate-ping' : 'bg-white animate-ping'}`;
+            toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-20px]', 'opacity-0');
+            }, 3500);
+        }
+
+        const loginSection = document.getElementById('login-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const loginSubmit = document.getElementById('login-submit');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginSection.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                dashboardSection.classList.remove('hidden');
+                loadSettings();
+                loadProducts();
+            } else {
+                loginSection.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                dashboardSection.classList.add('hidden');
+            }
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            loginSubmit.innerText = "กำลังตรวจสอบ...";
+            loginError.classList.add('hidden');
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                loginForm.reset();
+                showToast("เข้าสู่ระบบผู้ดูแลสำเร็จ");
+                await sendDiscordWebhook("✅ แอดมินเข้าสู่ระบบสำเร็จ", `เข้าสู่ระบบผ่านอีเมล: **${userCredential.user.email}**`, 3066993);
+            } catch (error) {
+                loginError.innerText = "เกิดข้อผิดพลาด: อีเมลหรือรหัสผ่านไม่ถูกต้อง";
+                loginError.classList.remove('hidden');
+                await sendDiscordWebhook("⚠️ พยายามเข้าสู่ระบบ Admin ล้มเหลว", `อีเมล: \`${email}\``, 15158332);
+            } finally {
+                loginSubmit.innerText = "เข้าสู่ระบบ";
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => { 
+            await sendDiscordWebhook("🚪 แอดมินออกจากระบบ", "ผู้ดูแลระบบได้กดออกจากระบบ", 10181046);
+            signOut(auth);
+            showToast("ออกจากระบบแล้ว");
+        });
+
+        const settingsForm = document.getElementById('settings-form');
+        settingsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const logoUrl = document.getElementById('setting-logo-url').value.trim();
+            const faviconUrl = document.getElementById('setting-favicon-url').value.trim();
+            const musicUrl = document.getElementById('setting-music-url').value.trim();
+            const songTitle = document.getElementById('setting-song-title').value.trim();
+            const songCover = document.getElementById('setting-song-cover').value.trim();
+            const indexLogoScale = document.getElementById('setting-index-logo-scale').value + 'px';
+            const shopLogoScale = document.getElementById('setting-shop-logo-scale').value + 'px';
+            const bgIndex = document.getElementById('setting-bg-index').value.trim();
+            const bgShop = document.getElementById('setting-bg-shop').value.trim();
+            const igUrl = document.getElementById('setting-ig').value.trim();
+            const ig2Url = document.getElementById('setting-ig2').value.trim();
+            const fbUrl = document.getElementById('setting-fb').value.trim();
+
+            try {
+                await setDoc(doc(db, "settings", "general"), { 
+                    logoUrl, faviconUrl, musicUrl, songTitle, songCover, 
+                    indexLogoScale, shopLogoScale, bgIndex, bgShop, igUrl, ig2Url, fbUrl 
+                }, { merge: true });
+                showToast("บันทึกการตั้งค่าเว็บไซต์สำเร็จ!");
+                await sendDiscordWebhook("⚙️ อัปเดตการตั้งค่าเว็บไซต์", "แอดมินได้ทำการแก้ไขและบันทึกการตั้งค่าเว็บไซต์/เพลง", 3447003);
+            } catch (err) {
+                showToast("เกิดข้อผิดพลาดในการบันทึก", true);
+            }
+        });
+
+        async function loadSettings() {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "general"));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('setting-logo-url').value = data.logoUrl || "";
+                    document.getElementById('setting-favicon-url').value = data.faviconUrl || "";
+                    document.getElementById('setting-music-url').value = data.musicUrl || "";
+                    document.getElementById('setting-song-title').value = data.songTitle || "";
+                    document.getElementById('setting-song-cover').value = data.songCover || "";
+                    
+                    const idxScale = parseInt(data.indexLogoScale) || 200;
+                    document.getElementById('setting-index-logo-scale').value = idxScale;
+                    document.getElementById('val-index-scale').innerText = idxScale + 'px';
+
+                    const shpScale = parseInt(data.shopLogoScale) || 160;
+                    document.getElementById('setting-shop-logo-scale').value = shpScale;
+                    document.getElementById('val-shop-scale').innerText = shpScale + 'px';
+
+                    document.getElementById('setting-bg-index').value = data.bgIndex || "";
+                    document.getElementById('setting-bg-shop').value = data.bgShop || "";
+                    document.getElementById('setting-ig').value = data.igUrl || "";
+                    document.getElementById('setting-ig2').value = data.ig2Url || "";
+                    document.getElementById('setting-fb').value = data.fbUrl || "";
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        const addProductForm = document.getElementById('addProductForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const formTitle = document.getElementById('form-title');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const editProductIdInput = document.getElementById('edit-product-id');
+
+        addProductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const editId = editProductIdInput.value;
+            const name = document.getElementById('name').value;
+            const price = Number(document.getElementById('price').value);
+            const stock = Number(document.getElementById('stock').value);
+            
+            const imageUrl = document.getElementById('imageUrl').value.trim();
+            const imageUrl2 = document.getElementById('imageUrl2').value.trim();
+            const imageUrl3 = document.getElementById('imageUrl3').value.trim();
+            const imageUrl4 = document.getElementById('imageUrl4').value.trim();
+            const description = document.getElementById('description').value;
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = editId ? 'กำลังบันทึกการแก้ไข...' : 'กำลังเพิ่มสินค้า...';
+
+            try {
+                const productData = { name, price, stock, imageUrl, imageUrl2, imageUrl3, imageUrl4, description };
+                if (editId) {
+                    await updateDoc(doc(db, "products", editId), productData);
+                    showToast("แก้ไขข้อมูลสินค้าสำเร็จ!");
+                    await sendDiscordWebhook("✏️ แก้ไขข้อมูลสินค้า", `แก้ไขสินค้า: **${name}**`, 15844367);
+                    resetFormMode();
+                } else {
+                    productData.createdAt = Date.now();
+                    await addDoc(collection(db, "products"), productData);
+                    showToast("เพิ่มสินค้าเข้าสู่ระบบสำเร็จ!");
+                    await sendDiscordWebhook("🛍️ เพิ่มสินค้าใหม่", `เพิ่มสินค้า: **${name}**`, 65280);
+                    addProductForm.reset();
+                }
+            } catch (error) {
+                showToast("เกิดข้อผิดพลาดในการบันทึกข้อมูล", true);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'เพิ่มสินค้าเข้าสู่ระบบ';
+            }
+        });
+
+        cancelEditBtn.addEventListener('click', () => {
+            resetFormMode();
+            addProductForm.reset();
+            showToast("ยกเลิกการแก้ไข");
+        });
+
+        function resetFormMode() {
+            editProductIdInput.value = '';
+            formTitle.innerText = "เพิ่มสินค้าใหม่";
+            submitBtn.innerText = "เพิ่มสินค้าเข้าสู่ระบบ";
+            cancelEditBtn.classList.add('hidden');
+        }
+
+        function loadProducts() {
+            const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+            onSnapshot(q, (snapshot) => {
+                const adminList = document.getElementById('admin-product-list');
+                const productCount = document.getElementById('product-count');
+                adminList.innerHTML = '';
+                productCount.innerText = `${snapshot.size} รายการ`;
+                
+                if(snapshot.empty) { 
+                    adminList.innerHTML = '<p class="text-gray-600 text-xs py-8 text-center col-span-full">ยังไม่มีสินค้าในระบบ</p>'; 
+                    return; 
+                }
+
+                snapshot.forEach((docData) => {
+                    const data = docData.data();
+                    const id = docData.id;
+                    const safeImg = data.imageUrl || 'https://via.placeholder.com/80x96?text=NO+IMG';
+                    
+                    const card = document.createElement('div');
+                    card.className = "flex gap-4 p-4 border border-gray-800 bg-[#060606] items-center group hover:border-gray-600 transition-colors";
+                    card.innerHTML = `
+                        <div class="w-16 h-20 bg-gray-900 flex-shrink-0 relative overflow-hidden border border-gray-800">
+                            <img src="${safeImg}" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/80x96?text=NO+IMG'">
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="font-semibold uppercase text-white truncate text-xs">${data.name}</h3>
+                            <p class="text-xs text-gray-400 mt-1 font-light">฿${data.price} | สต็อก: ${data.stock || 0}</p>
+                        </div>
+                        <div class="flex flex-col gap-2 flex-shrink-0">
+                            <button class="edit-btn px-3 py-1.5 text-[11px] text-white border border-gray-700 hover:bg-gray-800 transition-colors uppercase" data-id="${id}">แก้ไข</button>
+                            <button class="delete-btn px-3 py-1.5 text-[11px] text-red-400 border border-red-900/50 hover:bg-red-950 transition-colors uppercase" data-id="${id}">ลบ</button>
+                        </div>
+                    `;
+                    adminList.appendChild(card);
+                });
+
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.target.getAttribute('data-id');
+                        const docSnap = await getDoc(doc(db, "products", id));
+                        if (docSnap.exists()) {
+                            const p = docSnap.data();
+                            editProductIdInput.value = id;
+                            document.getElementById('name').value = p.name || '';
+                            document.getElementById('price').value = p.price || '';
+                            document.getElementById('stock').value = p.stock || 0;
+                            document.getElementById('imageUrl').value = p.imageUrl || '';
+                            document.getElementById('imageUrl2').value = p.imageUrl2 || '';
+                            document.getElementById('imageUrl3').value = p.imageUrl3 || '';
+                            document.getElementById('imageUrl4').value = p.imageUrl4 || '';
+                            document.getElementById('description').value = p.description || '';
+
+                            formTitle.innerText = "แก้ไขข้อมูลสินค้า";
+                            submitBtn.innerText = "บันทึกการแก้ไข";
+                            cancelEditBtn.classList.remove('hidden');
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            showToast("โหลดข้อมูลสินค้าสำหรับแก้ไขแล้ว");
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        if(confirm("คุณต้องการลบสินค้านี้ออกจากระบบใช่หรือไม่?")) {
+                            const id = e.target.getAttribute('data-id');
+                            await deleteDoc(doc(db, "products", id));
+                            showToast("ลบสินค้าสำเร็จ");
+                            await sendDiscordWebhook("🗑️ ลบสินค้าออกจากระบบ", `ลบสินค้า ID: \`${id}\``, 16711680);
+                        }
+                    });
+                });
+            });
+        }
+    </script>
+</body>
+</html>
