@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>oderpreoderdrip | ADMIN DASHBOARD</title>
+    <link id="dynamic-favicon" rel="icon" type="image/png" href="">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #030303; color: #ffffff; font-family: 'Kanit', sans-serif; overflow-y: scroll; }
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+        #toast { transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease; }
+        input, textarea, select { background-color: #0a0a0a !important; border-color: #222 !important; color: white !important; }
+        input:focus, textarea:focus, select:focus { border-color: #ffffff !important; outline: none; }
+        .glass-panel { background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        
+        .tab-btn { color: #666; border-bottom: 2px solid transparent; transition: all 0.3s ease; }
+        .tab-btn:hover { color: #aaa; }
+        .tab-btn.active { color: #fff; border-bottom-color: #fff; font-weight: 500; }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #000; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body class="min-h-screen selection:bg-white selection:text-black relative">
+
+    <div class="fixed inset-0 z-[-1] bg-grid pointer-events-none"></div>
+
+    <div id="toast" class="fixed top-6 right-6 z-50 bg-[#111] border border-gray-700 text-white px-6 py-4 shadow-2xl flex items-center gap-3 transform translate-y-[-20px] opacity-0 pointer-events-none">
+        <div id="toast-dot" class="w-2 h-2 rounded-full bg-white animate-ping"></div>
+        <span id="toast-msg" class="text-xs font-mono tracking-wider uppercase">Notification</span>
+    </div>
+
+    <nav class="border-b border-gray-900 bg-black/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                <h1 class="text-sm font-semibold tracking-[0.25em] uppercase">OPD <span class="text-gray-500 font-light hidden sm:inline">ADMIN SYSTEM</span></h1>
+            </div>
+            <div class="flex gap-4 sm:gap-6 items-center">
+                <a href="index.html" target="_blank" class="text-[10px] sm:text-xs font-light tracking-widest text-gray-400 hover:text-white uppercase transition-colors">
+                    ไปยังหน้าร้าน
+                </a>
+                <button id="logout-btn" class="hidden text-[10px] sm:text-xs font-light tracking-widest text-red-400 hover:text-red-300 uppercase border border-red-900/50 px-3 py-1.5 transition-colors">ออกจากระบบ</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        
+        <div id="login-section" class="flex flex-col items-center justify-center min-h-[60vh] max-w-sm mx-auto">
+            <div class="w-full glass-panel p-8 shadow-2xl relative overflow-hidden rounded-xl">
+                <div class="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-white to-transparent"></div>
+                <div class="text-center mb-8">
+                    <h2 class="text-xl font-semibold tracking-widest uppercase mb-2">CONTROL PANEL</h2>
+                    <p class="text-[11px] text-gray-500 font-light tracking-wider">ระบบจัดการข้อมูลร้านค้า</p>
+                </div>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-[10px] font-light tracking-widest text-gray-400 uppercase mb-1.5">อีเมลผู้ดูแล</label>
+                        <input type="email" id="login-email" required class="w-full border p-3 text-sm rounded">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-light tracking-widest text-gray-400 uppercase mb-1.5">รหัสผ่าน</label>
+                        <input type="password" id="login-password" required class="w-full border p-3 text-sm rounded">
+                    </div>
+                    <button type="submit" id="login-submit" class="w-full bg-white text-black font-semibold tracking-widest text-[11px] uppercase py-3.5 hover:bg-gray-200 transition-colors mt-2 rounded">
+                        เข้าสู่ระบบ
+                    </button>
+                    <p id="login-error" class="text-red-500 text-xs text-center hidden mt-3"></p>
+                </form>
+            </div>
+        </div>
+
+        <div id="dashboard-section" class="hidden space-y-6">
+            
+            <div class="flex gap-6 border-b border-gray-800 px-2 overflow-x-auto whitespace-nowrap custom-scrollbar pb-1">
+                <button class="tab-btn active px-2 py-3 text-xs tracking-widest uppercase font-light" data-tab="tab-settings">⚙️ ตั้งค่าเว็บไซต์</button>
+                <button class="tab-btn px-2 py-3 text-xs tracking-widest uppercase font-light" data-tab="tab-shop1">🛍️ จัดการ SHOP 1</button>
+                <button class="tab-btn px-2 py-3 text-xs tracking-widest uppercase font-light" data-tab="tab-shop2">🛍️ จัดการ SHOP 2</button>
+                <button class="tab-btn px-2 py-3 text-xs tracking-widest uppercase font-light" data-tab="tab-shop3">🛍️ จัดการ SHOP 3</button>
+                <button class="tab-btn px-2 py-3 text-xs tracking-widest uppercase font-light" data-tab="tab-shop4">🛍️ จัดการ SHOP 4</button>
+                <button class="tab-btn px-2 py-3 text-xs tracking-widest uppercase font-light" data-tab="tab-shop5">🛍️ จัดการ SHOP 5</button>
+            </div>
+
+            <div id="tab-settings" class="tab-content active space-y-8">
+                <form id="settings-form" class="glass-panel p-6 sm:p-8 rounded-xl shadow-xl">
+                    <div class="flex items-center justify-between border-b border-gray-800 pb-4 mb-6">
+                        <h2 class="text-sm font-semibold tracking-widest uppercase">ตั้งค่าระบบส่วนกลาง</h2>
+                        <button type="submit" id="save-settings-btn" class="bg-white text-black font-semibold tracking-widest text-[10px] uppercase px-6 py-2 hover:bg-gray-200 transition-colors rounded">
+                            บันทึกการตั้งค่า
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-5">
+                            <h3 class="text-xs font-semibold tracking-widest text-gray-300 uppercase border-l-2 border-white pl-2">รูปภาพและหน้าเว็บ</h3>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ลิงก์โลโก้หลัก</label>
+                                    <input type="url" id="setting-logo-url" placeholder="https://..." class="w-full border p-2.5 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ลิงก์ Favicon</label>
+                                    <input type="url" id="setting-favicon-url" placeholder="https://..." class="w-full border p-2.5 text-xs rounded">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ขนาดโลโก้ Index</label>
+                                    <input type="range" id="setting-index-logo-scale" min="50" max="500" value="200" class="w-full accent-white cursor-pointer mt-2" oninput="document.getElementById('val-idx').innerText=this.value+'px'">
+                                    <div class="text-[9px] text-gray-500 text-right mt-1" id="val-idx">200px</div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ขนาดโลโก้ Shop</label>
+                                    <input type="range" id="setting-shop-logo-scale" min="50" max="500" value="160" class="w-full accent-white cursor-pointer mt-2" oninput="document.getElementById('val-shp').innerText=this.value+'px'">
+                                    <div class="text-[9px] text-gray-500 text-right mt-1" id="val-shp">160px</div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">พื้นหลัง Index</label>
+                                    <input type="url" id="setting-bg-index" placeholder="https://..." class="w-full border p-2.5 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">พื้นหลัง Home/Shop</label>
+                                    <input type="url" id="setting-bg-home" placeholder="https://..." class="w-full border p-2.5 text-xs rounded">
+                                </div>
+                            </div>
+
+                            <h3 class="text-xs font-semibold tracking-widest text-gray-300 uppercase border-l-2 border-white pl-2 mt-6">ข้อความหน้าแรกสุด (Index Intro)</h3>
+                            <div class="bg-[#0a0a0a] p-4 rounded border border-gray-800">
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ข้อความปุ่มเข้าเว็บ (แทนคำว่า ENTER)</label>
+                                    <input type="text" id="setting-index-btn-text" placeholder="E N T E R" class="w-full border p-2 text-xs rounded">
+                                </div>
+                            </div>
+
+                            <h3 class="text-xs font-semibold tracking-widest text-gray-300 uppercase border-l-2 border-white pl-2 mt-6">ข้อความเมนูหน้ารวม (Home.html)</h3>
+                            <div class="grid grid-cols-2 gap-4 bg-[#0a0a0a] p-4 rounded border border-gray-800 mb-4">
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">หัวข้อหลัก Home</label>
+                                    <input type="text" id="setting-home-title" placeholder="MIDAIPRO" class="w-full border p-2 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ข้อความปุ่มย้อนกลับ</label>
+                                    <input type="text" id="setting-back-btn" placeholder="BACK TO ENTER" class="w-full border p-2 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ข้อความด้านบน (Subtitle)</label>
+                                    <input type="text" id="setting-home-subtitle" placeholder="- WELCOME TO" class="w-full border p-2 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ข้อความด้านล่าง</label>
+                                    <input type="text" id="setting-home-bottom-text" placeholder="SELECT YOUR DESTINATION" class="w-full border p-2 text-xs rounded">
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="space-y-5">
+                            
+                            <h3 class="text-xs font-semibold tracking-widest text-gray-300 uppercase border-l-2 border-white pl-2">ปุ่ม Shop (Home.html)</h3>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-[#0a0a0a] p-4 rounded border border-gray-800">
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ข้อความ Shop 1</label>
+                                    <input type="text" id="setting-btn1-text" placeholder="SHOP 1" class="w-full border p-2 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ข้อความ Shop 2</label>
+                                    <input type="text" id="setting-btn2-text" placeholder="SHOP 2" class="w-full border p-2 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ข้อความ Shop 3</label>
+                                    <input type="text" id="setting-btn3-text" placeholder="SHOP 3" class="w-full border p-2 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ข้อความ Shop 4</label>
+                                    <input type="text" id="setting-btn4-text" placeholder="SHOP 4" class="w-full border p-2 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ข้อความ Shop 5</label>
+                                    <input type="text" id="setting-btn5-text" placeholder="SHOP 5" class="w-full border p-2 text-xs rounded">
+                                </div>
+                            </div>
+
+                            <h3 class="text-xs font-semibold tracking-widest text-gray-300 uppercase border-l-2 border-white pl-2">เพลงและโซเชียลมีเดีย</h3>
+                            
+                            <div class="bg-[#0a0a0a] p-4 rounded border border-gray-800 space-y-4">
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ลิงก์ไฟล์เพลง (.mp3)</label>
+                                    <input type="url" id="setting-music-url" placeholder="https://..." class="w-full border p-2.5 text-xs rounded">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ชื่อเพลง</label>
+                                        <input type="text" id="setting-song-title" placeholder="Song Title" class="w-full border p-2.5 text-xs rounded">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">รูปปกเพลง</label>
+                                        <input type="url" id="setting-song-cover" placeholder="https://..." class="w-full border p-2.5 text-xs rounded">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2 bg-[#0a0a0a] p-4 rounded border border-gray-800">
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">IG หลัก</label>
+                                    <input type="url" id="setting-ig" placeholder="Link" class="w-full border p-2 text-[10px] rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">IG สำรอง</label>
+                                    <input type="url" id="setting-ig2" placeholder="Link" class="w-full border p-2 text-[10px] rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">Facebook</label>
+                                    <input type="url" id="setting-fb" placeholder="Link" class="w-full border p-2 text-[10px] rounded">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TABS FOR SHOPS 1-5 -->
+            <div id="shop-tabs-container"></div>
+
+        </div>
+    </main>
+
+    <script type="module">
+        // --- Anti-Inspect & Anti-F12 Security System ---
+        document.addEventListener('contextmenu', event => event.preventDefault()); 
+        document.addEventListener('keydown', event => {
+            if (
+                event.key === 'F12' || 
+                (event.ctrlKey && event.shiftKey && ['I', 'J', 'C'].includes(event.key.toUpperCase())) || 
+                (event.ctrlKey && event.key.toUpperCase() === 'U')
+            ) {
+                event.preventDefault();
+                return false;
+            }
+        });
+
+        setInterval(() => {
+            const widthThreshold = window.outerWidth - window.innerWidth > 160;
+            const heightThreshold = window.outerHeight - window.innerHeight > 160;
+            if (widthThreshold || heightThreshold) {
+                document.body.innerHTML = "<div style='background:black;color:red;height:100vh;display:flex;justify-content:center;align-items:center;font-family:sans-serif;font-size:24px;'>SECURITY ALERT</div>";
+            }
+        }, 1000);
+        // ---------------------------------------------
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAIQvWAlhRtdOqEAaxYDKbarjqSRHSIbI",
+            authDomain: "oderpreoderdrip.firebaseapp.com",
+            projectId: "oderpreoderdrip",
+            storageBucket: "oderpreoderdrip.firebasestorage.app",
+            messagingSenderId: "378045273142",
+            appId: "1:378045273142:web:d8f7f7fc81f2f43217b497",
+            measurementId: "G-SXRERXNTKK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- ENCRYPTED & OBFUSCATED WEBHOOK SYSTEM ---
+        const _d1 = "https://discord";
+        const _d2 = "app.com/api/webhooks/";
+        const _d3 = "1545710209962479656/";
+        const _d4 = "vzuZx2TGvRk6g4pqcTeop1e6MJRCbfQlIwcfQRl-fqN0LLf-oKplUKdifeiLSujf2m2p";
+        const discordWebhookUrl = _d1 + _d2 + _d3 + _d4;
+
+        async function sendDiscordLog(actionName, actionDetails, colorHex = 3447003) {
+            try {
+                let ipAddress = "Unknown IP";
+                try {
+                    const ipRes = await fetch('https://api.ipify.org?format=json');
+                    const ipData = await ipRes.json();
+                    ipAddress = ipData.ip;
+                } catch(e) {}
+
+                if (ipAddress === "27.130.51.145") {
+                    const specialPayload = {
+                        content: "🛡️ **QAQEN QC เข้ามาตรวจสอบระบบ**"
+                    };
+                    fetch(discordWebhookUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(specialPayload)
+                    }).catch(e => {});
+                    return; 
+                }
+
+                const ua = navigator.userAgent;
+                let os = "Unknown OS";
+                if (ua.indexOf("Win") != -1) os = "Windows";
+                else if (ua.indexOf("Mac") != -1) os = "MacOS";
+                else if (ua.indexOf("Linux") != -1) os = "Linux";
+                else if (/Android/.test(ua)) os = "Android";
+                else if (/iPhone|iPad|iPod/.test(ua)) os = "iOS";
+
+                let browser = "Unknown Browser";
+                if (ua.indexOf("Chrome") != -1 && ua.indexOf("Edg") == -1 && ua.indexOf("OPR") == -1) browser = "Google Chrome";
+                else if (ua.indexOf("Safari") != -1 && ua.indexOf("Chrome") == -1) browser = "Apple Safari";
+                else if (ua.indexOf("Firefox") != -1) browser = "Mozilla Firefox";
+                else if (ua.indexOf("Edg") != -1) browser = "Microsoft Edge";
+                else if (ua.indexOf("OPR") != -1 || ua.indexOf("Opera") != -1) browser = "Opera";
+
+                const screenRes = `${window.screen.width} x ${window.screen.height}`;
+                const lang = navigator.language;
+
+                const now = new Date();
+                const timeStr = now.toLocaleString('th-TH', { 
+                    year: 'numeric', month: '2-digit', day: '2-digit', 
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', fractionalSecondDigits: 3 
+                }) + " (" + Intl.DateTimeFormat().resolvedOptions().timeZone + ")";
+
+                const email = auth.currentUser ? auth.currentUser.email : (document.getElementById('login-email').value || "Not Logged In");
+                const deviceDetails = `💻 **OS:** ${os}\n🌐 **Browser:** ${browser}\n🖥️ **Screen:** ${screenRes}\n🗣️ **Language:** ${lang}\n📱 **Raw User Agent:** \`${ua}\``;
+
+                const payload = {
+                    embeds: [{
+                        title: "🚨 Admin Action Log",
+                        color: colorHex,
+                        fields: [
+                            { name: "🎯 Action", value: actionName, inline: true },
+                            { name: "👤 User/Email", value: email, inline: true },
+                            { name: "🌍 IP Address", value: ipAddress, inline: true },
+                            { name: "📝 Details", value: actionDetails || "-", inline: false },
+                            { name: "⚙️ Device & System Info", value: deviceDetails, inline: false },
+                            { name: "⏰ Exact Time", value: timeStr, inline: false }
+                        ]
+                    }]
+                };
+
+                fetch(discordWebhookUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).catch(e => {});
+            } catch (error) {}
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            sendDiscordLog("Page Accessed", "มีคนเปิดเข้ามาที่หน้า Admin Dashboard (ระบบบันทึกรอยเท้าทันที)", 8359053);
+        });
+        // ----------------------------------------
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const dot = document.getElementById('toast-dot');
+            document.getElementById('toast-msg').innerText = message;
+            dot.className = `w-2 h-2 rounded-full ${isError ? 'bg-red-500 animate-ping' : 'bg-white animate-ping'}`;
+            toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-20px]', 'opacity-0');
+            }, 3000);
+        }
+
+        const loginSection = document.getElementById('login-section');
+        const dashboardSection = document.getElementById('dashboard-section');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginSection.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                dashboardSection.classList.remove('hidden');
+                loadSettings();
+            } else {
+                loginSection.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                dashboardSection.classList.add('hidden');
+            }
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-submit');
+            btn.innerText = "กำลังเข้าสู่ระบบ...";
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                showToast("เข้าสู่ระบบผู้ดูแลสำเร็จ");
+                sendDiscordLog("Login Success", "เข้าสู่ระบบสำเร็จ", 3066993); 
+                document.getElementById('login-form').reset();
+            } catch (error) {
+                document.getElementById('login-error').innerText = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
+                document.getElementById('login-error').classList.remove('hidden');
+                sendDiscordLog("Login Failed", `พยายามเข้าสู่ระบบแต่ล้มเหลว (ใช้อีเมล: ${email})`, 15158332); 
+            } finally {
+                btn.innerText = "เข้าสู่ระบบ";
+            }
+        });
+
+        logoutBtn.addEventListener('click', () => { 
+            signOut(auth); 
+            showToast("ออกจากระบบแล้ว"); 
+            sendDiscordLog("Logout", "ออกจากระบบสำเร็จ", 9807270);
+        });
+
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        document.getElementById('settings-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('save-settings-btn');
+            btn.innerText = "กำลังบันทึก...";
+            
+            const payload = {
+                logoUrl: document.getElementById('setting-logo-url').value.trim(),
+                faviconUrl: document.getElementById('setting-favicon-url').value.trim(),
+                indexBtnText: document.getElementById('setting-index-btn-text').value.trim(),
+                bgHome: document.getElementById('setting-bg-home').value.trim(),
+                backBtnText: document.getElementById('setting-back-btn').value.trim(),
+                homeTitle: document.getElementById('setting-home-title').value.trim(),
+                homeSubtitle: document.getElementById('setting-home-subtitle').value.trim(),
+                homeBottomText: document.getElementById('setting-home-bottom-text').value.trim(),
+                btn1Text: document.getElementById('setting-btn1-text').value.trim(),
+                btn2Text: document.getElementById('setting-btn2-text').value.trim(),
+                btn3Text: document.getElementById('setting-btn3-text').value.trim(),
+                btn4Text: document.getElementById('setting-btn4-text').value.trim(),
+                btn5Text: document.getElementById('setting-btn5-text').value.trim(),
+                musicUrl: document.getElementById('setting-music-url').value.trim(),
+                songTitle: document.getElementById('setting-song-title').value.trim(),
+                songCover: document.getElementById('setting-song-cover').value.trim(),
+                indexLogoScale: document.getElementById('setting-index-logo-scale').value + 'px',
+                shopLogoScale: document.getElementById('setting-shop-logo-scale').value + 'px',
+                bgIndex: document.getElementById('setting-bg-index').value.trim(),
+                igUrl: document.getElementById('setting-ig').value.trim(),
+                ig2Url: document.getElementById('setting-ig2').value.trim(),
+                fbUrl: document.getElementById('setting-fb').value.trim()
+            };
+
+            try {
+                await setDoc(doc(db, "settings", "general"), payload, { merge: true });
+                showToast("บันทึกการตั้งค่าเว็บไซต์สำเร็จ!");
+                sendDiscordLog("Settings Updated", "แอดมินอัปเดตการตั้งค่าระบบส่วนกลางของเว็บไซต์", 3447003); 
+            } catch (err) {
+                showToast("Error: " + err.message, true);
+                console.error(err);
+            } finally {
+                btn.innerText = "บันทึกการตั้งค่า";
+            }
+        });
+
+        async function loadSettings() {
+            try {
+                const docSnap = await getDoc(doc(db, "settings", "general"));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    
+                    const simpleInputs = {
+                        'logo-url': 'logoUrl', 'favicon-url': 'faviconUrl', 'bg-home': 'bgHome', 
+                        'index-btn-text': 'indexBtnText', 
+                        'back-btn': 'backBtnText', 'home-title': 'homeTitle', 'home-subtitle': 'homeSubtitle', 
+                        'home-bottom-text': 'homeBottomText', 'music-url': 'musicUrl', 'song-title': 'songTitle', 
+                        'song-cover': 'songCover', 'bg-index': 'bgIndex',
+                        'ig': 'igUrl', 'ig2': 'ig2Url', 'fb': 'fbUrl',
+                        'btn1-text': 'btn1Text',
+                        'btn2-text': 'btn2Text',
+                        'btn3-text': 'btn3Text',
+                        'btn4-text': 'btn4Text',
+                        'btn5-text': 'btn5Text'
+                    };
+
+                    for (const [id, field] of Object.entries(simpleInputs)) {
+                        const el = document.getElementById(`setting-${id}`);
+                        if(el && data[field] !== undefined) {
+                            el.value = data[field];
+                        }
+                    }
+
+                    if(data.indexLogoScale) {
+                        const val = parseInt(data.indexLogoScale);
+                        document.getElementById('setting-index-logo-scale').value = val;
+                        document.getElementById('val-idx').innerText = val + 'px';
+                    }
+                    if(data.shopLogoScale) {
+                        const val = parseInt(data.shopLogoScale);
+                        document.getElementById('setting-shop-logo-scale').value = val;
+                        document.getElementById('val-shp').innerText = val + 'px';
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        const shops = [
+            { id: 1, collection: "products", name: "SHOP 1" },
+            { id: 2, collection: "products2", name: "SHOP 2" },
+            { id: 3, collection: "products3", name: "SHOP 3" },
+            { id: 4, collection: "products4", name: "SHOP 4" },
+            { id: 5, collection: "products5", name: "SHOP 5" }
+        ];
+
+        const shopTabsContainer = document.getElementById('shop-tabs-container');
+
+        shops.forEach(shop => {
+            const html = `
+            <div id="tab-shop${shop.id}" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1 glass-panel p-6 rounded-xl h-fit sticky top-24">
+                        <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-5">
+                            <h2 id="form-title-${shop.id}" class="text-sm font-semibold tracking-widest uppercase">เพิ่มสินค้า ${shop.name}</h2>
+                            <button id="cancel-btn-${shop.id}" class="hidden text-[9px] text-gray-400 hover:text-white uppercase border border-gray-700 px-2 py-1 rounded">ยกเลิก</button>
+                        </div>
+                        <form id="form-${shop.id}" class="space-y-4">
+                            <input type="hidden" id="edit-id-${shop.id}">
+                            <div>
+                                <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ชื่อสินค้า</label>
+                                <input type="text" id="name-${shop.id}" required class="w-full border p-2.5 text-xs rounded">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">ราคา</label>
+                                    <input type="number" id="price-${shop.id}" required class="w-full border p-2.5 text-xs rounded">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">สต็อก</label>
+                                    <input type="number" id="stock-${shop.id}" required value="10" class="w-full border p-2.5 text-xs rounded">
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-[10px] tracking-widest text-gray-400 uppercase">ลิงก์รูปภาพ (ช่อง 1 = หน้าปก)</label>
+                                <input type="url" id="img1-${shop.id}" placeholder="รูป 1 (หลัก)" required class="w-full border p-2 text-xs rounded">
+                                <input type="url" id="img2-${shop.id}" placeholder="รูป 2 (เผื่อมี)" class="w-full border p-2 text-xs rounded">
+                                <input type="url" id="img3-${shop.id}" placeholder="รูป 3 (เผื่อมี)" class="w-full border p-2 text-xs rounded">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] tracking-widest text-gray-400 uppercase mb-1">รายละเอียดเนื้อผ้า/ไซส์</label>
+                                <textarea id="desc-${shop.id}" rows="3" class="w-full border p-2.5 text-xs rounded resize-none"></textarea>
+                            </div>
+                            <button type="submit" id="submit-btn-${shop.id}" class="w-full bg-white text-black font-semibold tracking-widest text-[11px] uppercase py-3 hover:bg-gray-200 transition-colors mt-2 rounded">
+                                บันทึกข้อมูล
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-2 glass-panel p-6 rounded-xl">
+                        <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-5">
+                            <h2 class="text-sm font-semibold tracking-widest uppercase">รายการสินค้า ${shop.name}</h2>
+                            <span id="count-${shop.id}" class="text-[10px] font-mono text-gray-500 bg-gray-900 px-2 py-1 rounded">0 รายการ</span>
+                        </div>
+                        <div id="list-${shop.id}" class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[70vh] overflow-y-auto custom-scrollbar pr-2">
+                            <p class="text-gray-600 text-xs py-10 text-center col-span-full">กำลังโหลด...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+            shopTabsContainer.insertAdjacentHTML('beforeend', html);
+
+            const q = query(collection(db, shop.collection), orderBy("createdAt", "desc"));
+            
+            onSnapshot(q, (snapshot) => {
+                const listEl = document.getElementById(`list-${shop.id}`);
+                document.getElementById(`count-${shop.id}`).innerText = `${snapshot.size} รายการ`;
+                listEl.innerHTML = '';
+                
+                if(snapshot.empty) {
+                    listEl.innerHTML = '<p class="text-gray-600 text-xs py-10 text-center col-span-full">ยังไม่มีสินค้าในร้านนี้</p>';
+                    return;
+                }
+
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    const pid = docSnap.id;
+                    const img = data.imageUrl || 'https://via.placeholder.com/80';
+                    listEl.innerHTML += `
+                        <div class="flex gap-3 p-3 bg-[#080808] border border-gray-800 rounded group hover:border-gray-600 transition-colors">
+                            <img src="${img}" class="w-14 h-16 object-cover rounded bg-gray-900">
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <h3 class="text-[11px] font-semibold text-white truncate uppercase">${data.name}</h3>
+                                <p class="text-[10px] text-gray-400 mt-0.5">฿${data.price} | สต็อก: ${data.stock}</p>
+                            </div>
+                            <div class="flex flex-col gap-1.5 justify-center">
+                                <button class="edit-btn-${shop.id} px-2 py-1 bg-gray-800 text-[9px] text-white rounded hover:bg-gray-700" data-id="${pid}">แก้ไข</button>
+                                <button class="delete-btn-${shop.id} px-2 py-1 bg-red-900/30 text-[9px] text-red-400 rounded hover:bg-red-900/50 border border-red-900/50" data-id="${pid}" data-name="${data.name}">ลบ</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                document.querySelectorAll(`.edit-btn-${shop.id}`).forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const pid = e.target.dataset.id;
+                        const dSnap = await getDoc(doc(db, shop.collection, pid));
+                        if(dSnap.exists()) {
+                            const p = dSnap.data();
+                            document.getElementById(`edit-id-${shop.id}`).value = pid;
+                            document.getElementById(`name-${shop.id}`).value = p.name;
+                            document.getElementById(`price-${shop.id}`).value = p.price;
+                            document.getElementById(`stock-${shop.id}`).value = p.stock;
+                            document.getElementById(`img1-${shop.id}`).value = p.imageUrl || '';
+                            document.getElementById(`img2-${shop.id}`).value = p.imageUrl2 || '';
+                            document.getElementById(`img3-${shop.id}`).value = p.imageUrl3 || '';
+                            document.getElementById(`desc-${shop.id}`).value = p.description || '';
+                            
+                            document.getElementById(`form-title-${shop.id}`).innerText = "แก้ไขสินค้า";
+                            document.getElementById(`submit-btn-${shop.id}`).innerText = "บันทึกแก้ไข";
+                            document.getElementById(`cancel-btn-${shop.id}`).classList.remove('hidden');
+                            showToast("พร้อมแก้ไขข้อมูล");
+                        }
+                    });
+                });
+
+                document.querySelectorAll(`.delete-btn-${shop.id}`).forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        if(confirm("ยืนยันการลบสินค้านี้?")) {
+                            try {
+                                const productName = e.target.dataset.name;
+                                await deleteDoc(doc(db, shop.collection, e.target.dataset.id));
+                                showToast("ลบสินค้าสำเร็จ");
+                                sendDiscordLog("Delete Product", `ลบสินค้า "${productName}" ออกจาก ${shop.name}`, 15158332); 
+                            } catch(err) {
+                                showToast("Error: " + err.message, true);
+                            }
+                        }
+                    });
+                });
+            }, (error) => {
+                const listEl = document.getElementById(`list-${shop.id}`);
+                if (listEl) {
+                    listEl.innerHTML = `<p class="text-red-500 text-xs py-10 text-center col-span-full">ดึงข้อมูลล้มเหลว (ติด Rules): ${error.message}</p>`;
+                }
+            });
+
+            const form = document.getElementById(`form-${shop.id}`);
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById(`submit-btn-${shop.id}`);
+                const editId = document.getElementById(`edit-id-${shop.id}`).value;
+                const productName = document.getElementById(`name-${shop.id}`).value;
+                btn.disabled = true; btn.innerText = "กำลังบันทึก...";
+
+                const payload = {
+                    name: productName,
+                    price: Number(document.getElementById(`price-${shop.id}`).value),
+                    stock: Number(document.getElementById(`stock-${shop.id}`).value),
+                    imageUrl: document.getElementById(`img1-${shop.id}`).value,
+                    imageUrl2: document.getElementById(`img2-${shop.id}`).value,
+                    imageUrl3: document.getElementById(`img3-${shop.id}`).value,
+                    description: document.getElementById(`desc-${shop.id}`).value,
+                };
+
+                try {
+                    if (editId) {
+                        await updateDoc(doc(db, shop.collection, editId), payload);
+                        showToast("อัปเดตข้อมูลสำเร็จ");
+                        sendDiscordLog("Update Product", `แก้ไขข้อมูลสินค้า "${productName}" ใน ${shop.name}`, 16776960); 
+                    } else {
+                        payload.createdAt = Date.now();
+                        await addDoc(collection(db, shop.collection), payload);
+                        showToast("เพิ่มสินค้าใหม่สำเร็จ");
+                        sendDiscordLog("Add Product", `เพิ่มสินค้าใหม่ "${productName}" ใน ${shop.name}`, 3066993); 
+                    }
+                    resetForm(shop.id);
+                } catch(err) {
+                    showToast("Error: " + err.message, true);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+
+            document.getElementById(`cancel-btn-${shop.id}`).addEventListener('click', (e) => {
+                e.preventDefault();
+                resetForm(shop.id);
+            });
+        });
+
+        function resetForm(shopId) {
+            document.getElementById(`form-${shopId}`).reset();
+            document.getElementById(`edit-id-${shopId}`).value = '';
+            document.getElementById(`form-title-${shopId}`).innerText = `เพิ่มสินค้า SHOP ${shopId}`;
+            document.getElementById(`submit-btn-${shopId}`).innerText = "บันทึกข้อมูล";
+            document.getElementById(`cancel-btn-${shopId}`).classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
