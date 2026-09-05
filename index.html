@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>oderpreoderdrip</title>
+    <link id="dynamic-favicon" rel="icon" type="image/png" href="">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        *, *:focus, *:active {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            outline: none !important;
+            caret-color: transparent !important;
+        }
+        body { background-color: #000000; color: #ffffff; overflow-x: hidden; opacity: 0; transition: opacity 0.5s ease; }
+        body.loaded { opacity: 1; }
+        .logo-wrapper { perspective: 1500px; }
+        .logo-element { transform-style: preserve-3d; width: 100%; height: 100%; position: relative; }
+        
+        .face {
+            position: absolute; inset: 0; backface-visibility: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: transparent;
+        }
+        .face-front { transform: translateZ(5px); }
+        .face-back { transform: rotateY(180deg) translateZ(5px); }
+        
+        .loader-container { transition: opacity 0.8s ease-out; }
+        #bg-image-layer {
+            background-size: cover; background-position: center;
+            transition: background-image 0.5s ease-in-out;
+        }
+        .enter-container { animation: smooth-float 4s ease-in-out infinite; }
+        @keyframes smooth-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .enter-text {
+            background: linear-gradient(90deg, #ffffff 0%, #ffffff 35%, #555555 50%, #ffffff 65%, #ffffff 100%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: text-shimmer 3.5s linear infinite;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes text-shimmer {
+            0% { background-position: 200% center; }
+            100% { background-position: -200% center; }
+        }
+        .enter-container:hover .enter-text {
+            transform: scale(1.12);
+        }
+
+        .glow-icon {
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glow-icon:hover {
+            filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.8));
+            transform: scale(1.2) translateY(-2px);
+        }
+        img, svg { user-select: none; -webkit-user-drag: none; }
+
+        @keyframes slowSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: slowSpin 6s linear infinite; animation-play-state: paused; }
+        .animate-spin-slow.playing { animation-play-state: running; }
+    </style>
+</head>
+<body class="min-h-screen relative font-sans antialiased flex flex-col items-center justify-center selection:bg-white selection:text-black cursor-default overflow-hidden">
+
+    <div id="loader" class="loader-container fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center">
+        <div class="w-10 h-10 border-2 border-gray-800 border-t-white rounded-full animate-spin"></div>
+    </div>
+
+    <div id="bg-image-layer" class="absolute inset-0 z-0 pointer-events-none opacity-20"></div>
+    <div class="absolute inset-0 z-[1] bg-black/80 pointer-events-none"></div>
+    <canvas id="dust-canvas" class="fixed inset-0 z-[2] pointer-events-none opacity-40"></canvas>
+
+    <main class="z-10 flex flex-col items-center justify-center min-h-screen w-full px-6 opacity-0 translate-y-8 transition-all duration-1000 ease-out py-6 gap-6 sm:gap-8" id="main-content">
+        
+        <div id="logo-container" class="logo-wrapper w-72 h-72 sm:w-[400px] sm:h-[400px] cursor-grab active:cursor-grabbing relative flex items-center justify-center touch-none">
+            <div class="absolute inset-0 bg-white opacity-5 blur-[150px] rounded-full pointer-events-none"></div>
+            
+            <div id="logo-element" class="logo-element w-full h-full flex items-center justify-center">
+                <div class="face face-front p-4 flex items-center justify-center w-full h-full">
+                    <img id="index-logo-img" src="" alt="Logo" class="object-contain drop-shadow-2xl transition-all duration-300" style="max-height: 100%; max-width: 100%;" onerror="this.src='https://via.placeholder.com/200?text=OPD'">
+                </div>
+                <div class="face face-back p-4 flex items-center justify-center w-full h-full">
+                    <img id="index-logo-img-back" src="" alt="Logo Back" class="object-contain drop-shadow-2xl transition-all duration-300" style="max-height: 100%; max-width: 100%;" onerror="this.src='https://via.placeholder.com/200?text=OPD'">
+                </div>
+            </div>
+        </div>
+
+        <div class="enter-container">
+            <a id="index-enter-link" href="home.html" class="group relative px-6 py-2 inline-block nav-link">
+                <span id="index-enter-text" class="enter-text relative z-10 text-4xl sm:text-6xl font-black tracking-[0.25em] inline-block uppercase cursor-pointer">
+                    E N T E R
+                </span>
+            </a>
+        </div>
+
+        <div class="flex flex-col items-center gap-2">
+            <div id="social-container" class="flex items-center gap-6">
+                <a id="ig-link" href="#" target="_blank" class="text-white glow-icon hidden" aria-label="Instagram 1">
+                    <svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.79-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </a>
+                <a id="ig2-link" href="#" target="_blank" class="text-white glow-icon hidden" aria-label="Instagram 2">
+                    <svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.79-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </a>
+                <a id="fb-link" href="#" target="_blank" class="text-white glow-icon hidden" aria-label="Facebook">
+                    <svg fill="currentColor" viewBox="0 0 24 24" class="w-6 h-6"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </a>
+            </div>
+            <span id="index-footer-text" class="text-[9px] font-mono tracking-[0.3em] text-gray-500 uppercase">@QAQEN QC</span>
+        </div>
+
+    </main>
+
+    <!-- Floating Music Player Widget -->
+    <div id="music-widget" class="fixed bottom-6 left-6 z-50 flex items-center gap-3 bg-black/80 backdrop-blur-md border border-white/10 px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 opacity-60 hover:opacity-100 hover:border-white/30 group">
+        <div class="w-9 h-9 rounded-full overflow-hidden bg-gray-900 flex-shrink-0 relative border border-white/20">
+            <img id="widget-cover" src="https://via.placeholder.com/100?text=MUSIC" class="w-full h-full object-cover animate-spin-slow">
+        </div>
+        <div class="flex flex-col min-w-[90px] max-w-[130px]">
+            <span id="widget-title" class="text-[11px] font-medium text-white truncate">กำลังโหลดเพลง...</span>
+            <span id="widget-status" class="text-[9px] font-mono text-gray-400 tracking-wider">CLICK TO PLAY</span>
+        </div>
+        <input type="range" id="volume-slider" min="0" max="100" value="30" class="w-16 accent-white cursor-pointer hidden group-hover:block transition-all" title="ปรับระดับเสียงถึง 100">
+        <button id="music-toggle-btn" class="w-8 h-8 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 transition-transform flex-shrink-0" aria-label="Play/Pause Music">
+            <svg id="play-icon" class="w-3.5 h-3.5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <svg id="pause-icon" class="w-3.5 h-3.5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAIQvWAlhRtdOqEAaxYDKbarjqSRHSIbI",
+            authDomain: "oderpreoderdrip.firebaseapp.com",
+            projectId: "oderpreoderdrip",
+            storageBucket: "oderpreoderdrip.firebasestorage.app",
+            messagingSenderId: "378045273142",
+            appId: "1:378045273142:web:d8f7f7fc81f2f43217b497",
+            measurementId: "G-SXRERXNTKK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.addEventListener('DOMContentLoaded', () => { document.body.classList.add('loaded'); });
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = link.getAttribute('href');
+                document.body.style.opacity = '0';
+                setTimeout(() => { window.location.href = target; }, 500);
+            });
+        });
+
+        let bgAudio = window.opener ? null : document.getElementById('global-bg-audio');
+        if (!bgAudio) {
+            bgAudio = document.createElement('audio');
+            bgAudio.id = 'global-bg-audio';
+            bgAudio.loop = true;
+            bgAudio.volume = 0.3;
+            bgAudio.src = "music.mp3"; 
+            document.body.appendChild(bgAudio);
+        }
+
+        async function fetchSettings() {
+            try {
+                const snap = await getDoc(doc(db, "settings", "general"));
+                if(snap.exists()) {
+                    const data = snap.data();
+                    if(data.logoUrl) {
+                        document.getElementById('index-logo-img').src = data.logoUrl;
+                        document.getElementById('index-logo-img-back').src = data.logoUrl;
+                    }
+                    if(data.faviconUrl) {
+                        let favicon = document.getElementById('dynamic-favicon');
+                        if (!favicon) {
+                            favicon = document.createElement('link');
+                            favicon.id = 'dynamic-favicon';
+                            favicon.rel = 'icon';
+                            document.head.appendChild(favicon);
+                        }
+                        favicon.href = data.faviconUrl;
+                    }
+                    if(data.indexLogoScale) {
+                        document.getElementById('index-logo-img').style.width = data.indexLogoScale;
+                        document.getElementById('index-logo-img').style.height = data.indexLogoScale;
+                        document.getElementById('index-logo-img-back').style.width = data.indexLogoScale;
+                        document.getElementById('index-logo-img-back').style.height = data.indexLogoScale;
+                    }
+                    if(data.bgIndex) document.getElementById('bg-image-layer').style.backgroundImage = `url('${data.bgIndex}')`;
+                    
+                    // ส่วนรับข้อความหน้า Index
+                    if(data.indexBtnText) document.getElementById('index-enter-text').innerText = data.indexBtnText;
+                    if(data.indexBtnLink) document.getElementById('index-enter-link').setAttribute('href', data.indexBtnLink);
+                    if(data.indexFooterText) document.getElementById('index-footer-text').innerText = data.indexFooterText;
+
+                    if(data.igUrl) {
+                        const igEl = document.getElementById('ig-link');
+                        igEl.href = data.igUrl;
+                        igEl.classList.remove('hidden');
+                    }
+                    if(data.ig2Url) {
+                        const ig2El = document.getElementById('ig2-link');
+                        ig2El.href = data.ig2Url;
+                        ig2El.classList.remove('hidden');
+                    }
+                    if(data.fbUrl) {
+                        const fbEl = document.getElementById('fb-link');
+                        fbEl.href = data.fbUrl;
+                        fbEl.classList.remove('hidden');
+                    }
+
+                    const musicUrl = data.musicUrl ? data.musicUrl.trim() : "";
+                    const songTitle = data.songTitle || "OderPreOrderDrip Track";
+                    const songCover = data.songCover || "https://via.placeholder.com/100?text=OPD";
+
+                    document.getElementById('widget-title').innerText = songTitle;
+                    document.getElementById('widget-cover').src = songCover;
+
+                    if(musicUrl !== "") {
+                        if(bgAudio.src !== musicUrl) {
+                            bgAudio.src = musicUrl;
+                        }
+                    }
+                }
+            } catch(e) { console.error("Music Fetch Error:", e); }
+        }
+        fetchSettings();
+
+        const musicToggleBtn = document.getElementById('music-toggle-btn');
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const widgetCover = document.getElementById('widget-cover');
+        const widgetStatus = document.getElementById('widget-status');
+        const volumeSlider = document.getElementById('volume-slider');
+
+        volumeSlider.value = bgAudio.volume * 100;
+        volumeSlider.addEventListener('input', (e) => {
+            bgAudio.volume = e.target.value / 100;
+        });
+
+        if(!bgAudio.paused) {
+            playIcon.classList.add('hidden');
+            pauseIcon.classList.remove('hidden');
+            widgetCover.classList.add('playing');
+            widgetStatus.innerText = "PLAYING";
+        }
+
+        musicToggleBtn.addEventListener('click', () => {
+            if (bgAudio.paused) {
+                bgAudio.play().then(() => {
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                    widgetCover.classList.add('playing');
+                    widgetStatus.innerText = "PLAYING";
+                }).catch(err => console.error("Play error:", err));
+            } else {
+                bgAudio.pause();
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                widgetCover.classList.remove('playing');
+                widgetStatus.innerText = "PAUSED";
+            }
+        });
+
+        const unlockAudioOnFirstClick = () => {
+            if (bgAudio.paused) {
+                bgAudio.play().then(() => {
+                    playIcon.classList.add('hidden');
+                    pauseIcon.classList.remove('hidden');
+                    widgetCover.classList.add('playing');
+                    widgetStatus.innerText = "PLAYING";
+                }).catch(() => {});
+            }
+            window.removeEventListener('click', unlockAudioOnFirstClick);
+        };
+        window.addEventListener('click', unlockAudioOnFirstClick);
+
+        setTimeout(() => {
+            const loader = document.getElementById('loader');
+            const mainContent = document.getElementById('main-content');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                mainContent.classList.remove('opacity-0', 'translate-y-8');
+                mainContent.classList.add('opacity-100', 'translate-y-0');
+            }, 800); 
+        }, 1200);
+
+        const canvas = document.getElementById('dust-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+        const particles = Array.from({length: 100}, () => ({
+            x: Math.random() * width, y: Math.random() * height,
+            r: Math.random() * 1.5 + 0.5, vx: Math.random() * 1.5 + 0.5,
+            vy: (Math.random() - 0.5) * 1.5, opacity: Math.random() * 0.4 + 0.1
+        }));
+        const renderDust = () => {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x > width) p.x = 0; if (p.x < 0) p.x = width;
+                if (p.y > height) p.y = 0; if (p.y < 0) p.y = height;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`; ctx.fill();
+            });
+            requestAnimationFrame(renderDust);
+        };
+        renderDust();
+
+        const logoContainer = document.getElementById('logo-container');
+        const logoElement = document.getElementById('logo-element');
+        
+        logoContainer.addEventListener('contextmenu', (e) => e.preventDefault());
+        logoContainer.addEventListener('dragstart', (e) => e.preventDefault());
+
+        let isDragging = false, prevX = 0, prevY = 0, velX = 0, velY = 0, rotX = 0, rotY = 0;
+        let resetTimer = null;
+        let isResetting = false;
+        let targetRotX = 0, targetRotY = 0;
+
+        const lerp = (start, end, factor) => start + (end - start) * factor;
+
+        const animateLogo = () => {
+            if (!isDragging) { 
+                if (isResetting) {
+                    rotX = lerp(rotX, targetRotX, 0.08);
+                    rotY = lerp(rotY, targetRotY, 0.08);
+                    if (Math.abs(rotX - targetRotX) < 0.1 && Math.abs(rotY - targetRotY) < 0.1) {
+                        rotX = targetRotX;
+                        rotY = targetRotY;
+                        isResetting = false;
+                    }
+                } else {
+                    velX *= 0.92; 
+                    velY *= 0.92; 
+                    rotX -= velY; 
+                    rotY += velX; 
+                }
+            }
+            logoElement.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+            requestAnimationFrame(animateLogo);
+        };
+        animateLogo();
+
+        const startDrag = (e) => { 
+            isDragging = true; 
+            isResetting = false;
+            if (resetTimer) clearTimeout(resetTimer);
+            prevX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
+            prevY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
+            velX = 0; 
+            velY = 0; 
+        };
+        const dragMove = (e) => { 
+            if (!isDragging) return; 
+            const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX, 
+                  cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
+            velX = (cx - prevX) * 0.5; 
+            velY = (cy - prevY) * 0.5; 
+            prevX = cx; 
+            prevY = cy; 
+            rotX -= velY;
+            rotY += velX;
+        };
+        const dragEnd = () => { 
+            isDragging = false; 
+            if (resetTimer) clearTimeout(resetTimer);
+            resetTimer = setTimeout(() => {
+                isResetting = true;
+                targetRotX = Math.round(rotX / 360) * 360;
+                targetRotY = Math.round(rotY / 360) * 360;
+            }, 3000);
+        };
+        
+        logoContainer.addEventListener('mousedown', startDrag); 
+        window.addEventListener('mousemove', dragMove); 
+        window.addEventListener('mouseup', dragEnd);
+        logoContainer.addEventListener('touchstart', startDrag, {passive: true}); 
+        window.addEventListener('touchmove', dragMove, {passive: true}); 
+        window.addEventListener('touchend', dragEnd);
+    </script>
+</body>
+</html>
