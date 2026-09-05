@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>oderpreoderdrip | HOME</title>
+    <link id="dynamic-favicon" rel="icon" type="image/png" href="">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *:focus, *:active {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            outline: none !important;
+            caret-color: transparent !important;
+        }
+        body { 
+            background-color: #050505; 
+            color: #ffffff; 
+            overflow-x: hidden; 
+            font-family: 'Kanit', sans-serif; 
+            opacity: 0; 
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        body.loaded { opacity: 1; }
+        
+        #bg-image-layer {
+            background-size: cover; 
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-image 0.8s ease-in-out;
+        }
+
+        .glass-box {
+            background: rgba(15, 15, 15, 0.65); 
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+        .glass-box:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px -10px rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-shine::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -200%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transform: skewX(-25deg);
+            animation: shineSweep 4.5s infinite cubic-bezier(0.25, 1, 0.5, 1);
+            pointer-events: none;
+            z-index: 1;
+        }
+        @keyframes shineSweep {
+            0% { left: -200%; }
+            20% { left: 200%; }
+            100% { left: 200%; }
+        }
+
+        .text-shimmer {
+            background: linear-gradient(90deg, #ffffff 0%, #888888 40%, #ffffff 80%);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: textShimmer 5s linear infinite;
+        }
+        @keyframes textShimmer {
+            to { background-position: -200% center; }
+        }
+
+        @keyframes slowSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .animate-spin-slow { animation: slowSpin 7s linear infinite; animation-play-state: paused; }
+        .animate-spin-slow.playing { animation-play-state: running; }
+
+        img, svg { user-select: none; -webkit-user-drag: none; pointer-events: none; }
+    </style>
+</head>
+<body class="min-h-screen relative flex flex-col justify-between selection:bg-white selection:text-black">
+
+    <div id="bg-image-layer" class="fixed inset-0 z-0 pointer-events-none opacity-40"></div>
+    <div class="fixed inset-0 z-[1] bg-gradient-to-t from-black via-black/60 to-black/30 pointer-events-none"></div>
+    <!-- เอฟเฟกต์ละอองฝุ่น -->
+    <canvas id="dust-canvas" class="fixed inset-0 z-[2] pointer-events-none opacity-50"></canvas>
+
+    <!-- ส่วนบน: ปุ่มกลับหน้าหลัก -->
+    <header class="relative z-30 w-full px-6 py-6 sm:px-12 sm:py-8">
+        <a href="index.html" class="glass-box btn-shine inline-flex items-center gap-3 text-white text-[10px] sm:text-xs font-light tracking-[0.2em] px-5 py-2.5 sm:px-6 sm:py-3 rounded-full uppercase nav-link group w-fit max-w-[80vw]">
+            <span class="group-hover:-translate-x-1.5 transition-transform duration-400 flex-shrink-0">←</span>
+            <span id="back-btn-text" class="break-words leading-tight truncate sm:whitespace-normal">BACK TO ENTER</span>
+        </a>
+    </header>
+
+    <!-- ส่วนกลาง: จัดวางตำแหน่ง Responsive -->
+    <main class="relative z-20 w-full max-w-[1400px] mx-auto px-6 sm:px-12 flex-1 flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-12 lg:gap-20 my-auto py-10 lg:py-0">
+        
+        <!-- ฝั่งซ้าย: หัวข้อหลัก -->
+        <div class="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:w-1/2 space-y-3 sm:space-y-4 max-w-full">
+            <span id="home-subtitle" class="text-[10px] sm:text-[12px] text-gray-400 font-mono tracking-[0.4em] sm:tracking-[0.5em] uppercase transition-all duration-700 hover:text-white break-words max-w-full"></span>
+            <h1 id="home-title" class="text-4xl sm:text-6xl md:text-7xl lg:text-[6rem] xl:text-[7rem] font-bold tracking-tight uppercase drop-shadow-2xl text-shimmer leading-[1.1] break-words max-w-full"> </h1>
+            <p id="home-bottom-text" class="text-[10px] sm:text-xs text-gray-500 font-light tracking-[0.3em] sm:tracking-[0.4em] uppercase max-w-full break-words"></p>
+        </div>
+
+        <!-- ฝั่งขวา: ปุ่มเมนู -->
+        <div id="buttons-container" class="flex flex-col gap-3.5 w-full max-w-[320px] sm:max-w-[360px] lg:max-w-[400px]">
+            <a href="shop.html" class="glass-box btn-shine w-full py-4 sm:py-5 px-6 sm:px-8 rounded-xl text-[11px] sm:text-xs font-medium tracking-[0.25em] uppercase text-white flex justify-between items-center nav-link group">
+                <span id="btn1-text" class="text-white font-semibold relative z-10 transition-transform duration-300 group-hover:translate-x-1 break-words max-w-[85%] text-left leading-snug">SHOP 1</span>
+                <span class="text-gray-500 group-hover:translate-x-2 group-hover:text-white transition-all duration-300 relative z-10 flex-shrink-0">→</span>
+            </a>
+            <a href="shop2.html" class="glass-box btn-shine w-full py-4 sm:py-5 px-6 sm:px-8 rounded-xl text-[11px] sm:text-xs font-medium tracking-[0.25em] uppercase text-white flex justify-between items-center nav-link group">
+                <span id="btn2-text" class="text-white font-semibold relative z-10 transition-transform duration-300 group-hover:translate-x-1 break-words max-w-[85%] text-left leading-snug">SHOP 2</span>
+                <span class="text-gray-500 group-hover:translate-x-2 group-hover:text-white transition-all duration-300 relative z-10 flex-shrink-0">→</span>
+            </a>
+            <a href="shop3.html" class="glass-box btn-shine w-full py-4 sm:py-5 px-6 sm:px-8 rounded-xl text-[11px] sm:text-xs font-medium tracking-[0.25em] uppercase text-white flex justify-between items-center nav-link group">
+                <span id="btn3-text" class="text-white font-semibold relative z-10 transition-transform duration-300 group-hover:translate-x-1 break-words max-w-[85%] text-left leading-snug">SHOP 3</span>
+                <span class="text-gray-500 group-hover:translate-x-2 group-hover:text-white transition-all duration-300 relative z-10 flex-shrink-0">→</span>
+            </a>
+            <a href="shop4.html" class="glass-box btn-shine w-full py-4 sm:py-5 px-6 sm:px-8 rounded-xl text-[11px] sm:text-xs font-medium tracking-[0.25em] uppercase text-white flex justify-between items-center nav-link group">
+                <span id="btn4-text" class="text-white font-semibold relative z-10 transition-transform duration-300 group-hover:translate-x-1 break-words max-w-[85%] text-left leading-snug">SHOP 4</span>
+                <span class="text-gray-500 group-hover:translate-x-2 group-hover:text-white transition-all duration-300 relative z-10 flex-shrink-0">→</span>
+            </a>
+        </div>
+    </main>
+
+    <!-- ส่วนล่าง: เครื่องเล่นเพลง -->
+    <footer class="relative z-30 w-full px-6 py-6 sm:px-12 sm:py-8 flex justify-center lg:justify-end">
+        <div id="music-widget" class="glass-box flex items-center gap-3.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-full shadow-2xl transition-all duration-300 border border-white/10 hover:border-white/30">
+            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden bg-black flex-shrink-0 relative border border-white/20 shadow-inner">
+                <img id="widget-cover" src="https://via.placeholder.com/100?text=MUSIC" class="w-full h-full object-cover animate-spin-slow scale-110">
+            </div>
+            <div class="flex flex-col min-w-[100px] max-w-[140px] justify-center">
+                <span id="widget-title" class="text-[10px] sm:text-[11px] font-medium text-white truncate drop-shadow-md">LOADING...</span>
+                <span id="widget-status" class="text-[8px] sm:text-[9px] font-mono text-gray-400 tracking-[0.15em] mt-0.5">PAUSED</span>
+            </div>
+            <button id="music-toggle-btn" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-300 flex-shrink-0 cursor-pointer shadow-[0_0_15px_rgba(255,255,255,0.3)]" aria-label="Play/Pause">
+                <svg id="play-icon" class="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <svg id="pause-icon" class="w-3.5 h-3.5 sm:w-4 sm:h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+            </button>
+        </div>
+    </footer>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAIQvWAlhRtdOqEAaxYDKbarjqSRHSIbI",
+            authDomain: "oderpreoderdrip.firebaseapp.com",
+            projectId: "oderpreoderdrip",
+            storageBucket: "oderpreoderdrip.firebasestorage.app",
+            messagingSenderId: "378045273142",
+            appId: "1:378045273142:web:d8f7f7fc81f2f43217b497",
+            measurementId: "G-SXRERXNTKK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.addEventListener('DOMContentLoaded', () => { document.body.classList.add('loaded'); });
+
+        const playIcon = document.getElementById('play-icon');
+        const pauseIcon = document.getElementById('pause-icon');
+        const widgetCover = document.getElementById('widget-cover');
+        const widgetStatus = document.getElementById('widget-status');
+
+        const updateUI = (isPlaying) => {
+            if (isPlaying) {
+                playIcon.classList.add('hidden'); pauseIcon.classList.remove('hidden');
+                widgetCover.classList.add('playing'); widgetStatus.innerText = "PLAYING";
+            } else {
+                playIcon.classList.remove('hidden'); pauseIcon.classList.add('hidden');
+                widgetCover.classList.remove('playing'); widgetStatus.innerText = "PAUSED";
+            }
+        };
+
+        // --- ระบบเสียง (ซิงค์เวลาผ่าน localStorage) ---
+        let bgAudio = document.getElementById('global-bg-audio');
+        if (!bgAudio) {
+            bgAudio = new Audio('music.mp3');
+            bgAudio.id = 'global-bg-audio';
+            bgAudio.loop = true;
+            bgAudio.volume = 0.3;
+            document.body.appendChild(bgAudio);
+        }
+
+        const savedTime = localStorage.getItem('opd_sync_time');
+        if (savedTime) {
+            bgAudio.currentTime = parseFloat(savedTime);
+        }
+
+        const attemptPlay = () => {
+            bgAudio.play().then(() => {
+                updateUI(true);
+            }).catch(() => {
+                updateUI(false);
+            });
+        };
+        attemptPlay();
+
+        const forcePlayOnInteraction = () => {
+            if (bgAudio.paused) {
+                bgAudio.play().then(() => updateUI(true)).catch(() => {});
+            }
+        };
+        window.addEventListener('click', forcePlayOnInteraction);
+        window.addEventListener('touchstart', forcePlayOnInteraction);
+
+        setInterval(() => {
+            if (!bgAudio.paused) {
+                localStorage.setItem('opd_sync_time', bgAudio.currentTime);
+            }
+        }, 300);
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.setItem('opd_sync_time', bgAudio.currentTime);
+                const target = link.getAttribute('href');
+                document.body.style.opacity = '0';
+                setTimeout(() => { window.location.href = target; }, 500);
+            });
+        });
+
+        // ---------------- โหลดข้อมูล Firebase ----------------
+        async function fetchSettings() {
+            try {
+                const snap = await getDoc(doc(db, "settings", "general"));
+                if(snap.exists()) {
+                    const data = snap.data();
+                    if(data.faviconUrl) {
+                        let favicon = document.getElementById('dynamic-favicon');
+                        if (!favicon) { favicon = document.createElement('link'); favicon.id = 'dynamic-favicon'; favicon.rel = 'icon'; document.head.appendChild(favicon); }
+                        favicon.href = data.faviconUrl;
+                    }
+                    if(data.bgHome) document.getElementById('bg-image-layer').style.backgroundImage = `url('${data.bgHome}')`;
+                    
+                    if(data.backBtnText) document.getElementById('back-btn-text').innerText = data.backBtnText;
+                    if(data.homeSubtitle) document.getElementById('home-subtitle').innerText = data.homeSubtitle;
+                    if(data.homeTitle) document.getElementById('home-title').innerText = data.homeTitle;
+                    if(data.homeBottomText) document.getElementById('home-bottom-text').innerText = data.homeBottomText;
+                    
+                    if(data.btn1Text) document.getElementById('btn1-text').innerText = data.btn1Text;
+                    if(data.btn2Text) document.getElementById('btn2-text').innerText = data.btn2Text;
+                    if(data.btn3Text) document.getElementById('btn3-text').innerText = data.btn3Text;
+                    if(data.btn4Text) document.getElementById('btn4-text').innerText = data.btn4Text;
+
+                    if(data.songTitle) document.getElementById('widget-title').innerText = data.songTitle;
+                    if(data.songCover) document.getElementById('widget-cover').src = data.songCover;
+                    
+                    if(data.musicUrl && data.musicUrl.trim() !== "") {
+                        const newUrl = data.musicUrl.trim();
+                        if(bgAudio.src !== newUrl && !bgAudio.src.endsWith(newUrl)) {
+                            bgAudio.src = newUrl;
+                            const t = localStorage.getItem('opd_sync_time');
+                            if(t) bgAudio.currentTime = parseFloat(t);
+                            attemptPlay();
+                        }
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+        fetchSettings();
+
+        document.getElementById('music-toggle-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (bgAudio.paused) {
+                bgAudio.play().then(() => updateUI(true)).catch(err => console.error(err));
+            } else {
+                bgAudio.pause();
+                updateUI(false);
+            }
+        });
+
+        // --- เอฟเฟกต์ละอองพายุฝุ่น (Storm Dust Canvas) ---
+        const canvas = document.getElementById('dust-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height, particles;
+        const initStorm = () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            // คำนวณจำนวนเม็ดพายุฝุ่นตามหน้าจอ
+            const numParticles = width < 768 ? 100 : 250;
+            
+            particles = Array.from({length: numParticles}, () => ({
+                x: Math.random() * width, 
+                y: Math.random() * height,
+                r: Math.random() * 1.5 + 0.5, 
+                baseVx: -(Math.random() * 6 + 2), // ลมพัดไปทางซ้ายเร็ว
+                baseVy: Math.random() * 2 - 1, // กระจายขึ้นลงเล็กน้อย
+                opacity: Math.random() * 0.6 + 0.1,
+                offset: Math.random() * 100 // จังหวะคลื่นลมของแต่ละเม็ดฝุ่น
+            }));
+        };
+
+        initStorm();
+        window.addEventListener('resize', initStorm);
+
+        let time = 0;
+        const renderStorm = () => {
+            ctx.clearRect(0, 0, width, height);
+            time += 0.02; // ความเร็วของคลื่นลม
+
+            particles.forEach(p => {
+                // คำนวณกระแสลม (Turbulence) ให้พัดพริ้ว
+                let windVx = p.baseVx + Math.sin(time + p.offset) * 2;
+                let windVy = p.baseVy + Math.cos(time + p.offset) * 1.5;
+
+                p.x += windVx;
+                p.y += windVy;
+
+                // เมื่อฝุ่นปลิวทะลุขอบจอให้โผล่มาใหม่
+                if (p.x < -20) { p.x = width + 20; p.y = Math.random() * height; }
+                if (p.x > width + 20) { p.x = -20; p.y = Math.random() * height; }
+                if (p.y < -20) { p.y = height + 20; p.x = Math.random() * width; }
+                if (p.y > height + 20) { p.y = -20; p.x = Math.random() * width; }
+
+                // วาดหางลม (Motion Blur)
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - windVx * 1.5, p.y - windVy * 1.5);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${p.opacity * 0.3})`;
+                ctx.lineWidth = p.r;
+                ctx.stroke();
+
+                // วาดเม็ดพายุฝุ่น
+                ctx.beginPath(); 
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`; 
+                ctx.fill();
+            });
+            requestAnimationFrame(renderStorm);
+        };
+        renderStorm();
+    </script>
+</body>
+</html>
